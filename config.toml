@@ -1,0 +1,2 @@
+[advanced]
+cors-allow-methods = "GET, POST, OPTIONS"
