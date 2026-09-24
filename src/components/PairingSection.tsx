@@ -92,7 +92,20 @@ export const PairingSection: React.FC<PairingSectionProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
+
+      // AMAN DARI ERROR HTML: Cek tipe konten sebelum parsing ke JSON
+      const contentType = res.headers.get('content-type');
+      let data: any = {};
+
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const textResponse = await res.text();
+        if (res.status === 405) {
+          throw new Error('Endpoint /api/pairing-code tidak mengizinkan POST (405 Method Not Allowed). Periksa konfigurasi routing/proxy backend Wasmer kamu.');
+        }
+        throw new Error(`Server mengembalikan respon non-JSON (${res.status}): ${textResponse.slice(0, 50)}...`);
+      }
 
       if (!res.ok || !data.status) {
         throw new Error(data.error || 'Gagal mendapatkan kode pairing.');
@@ -125,7 +138,15 @@ export const PairingSection: React.FC<PairingSectionProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: currentPhone })
       });
-      const data = await res.json();
+      
+      const contentType = res.headers.get('content-type');
+      let data: any = {};
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        throw new Error(`Server error (${res.status})`);
+      }
+
       if (data.status) {
         setPairingCode(null);
         onSessionChange(null);
@@ -146,7 +167,15 @@ export const PairingSection: React.FC<PairingSectionProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber: currentPhone })
       });
-      const data = await res.json();
+
+      const contentType = res.headers.get('content-type');
+      let data: any = {};
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        throw new Error(`Server error (${res.status})`);
+      }
+
       if (data.status) {
         setTimeout(() => onRefresh(), 2000);
       }
